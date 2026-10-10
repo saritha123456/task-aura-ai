@@ -1,11 +1,10 @@
 import streamlit as st
 import json
 import os
-import streamlit_antd_components as sac
 
 st.set_page_config(page_title="TaskAura AI", page_icon="🎓", layout="centered")
 
-# Custom CSS for the beautiful card interface
+# Custom CSS for infographic-style steps and modern card styling
 st.markdown("""
 <style>
     .stButton>button {
@@ -39,6 +38,17 @@ st.markdown("""
         border-right: 1px solid #e5e7eb;
         border-bottom: 1px solid #e5e7eb;
     }
+    .infographic-step {
+        display: flex;
+        align-items: center;
+        background: #f8fafc;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 4px solid #a855f7;
+        font-weight: 500;
+        color: #334155;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -62,7 +72,7 @@ data = load_data()
 # App Header
 st.title("🎓 TaskAura AI")
 st.markdown("### *Intelligent Student Task Decomposition & Prioritizer*")
-st.write("Transform overwhelmling exams or creative projects into a professional, automated, step-by-step milestone pipeline.")
+st.write("Transform any exam, presentation, or project into an interactive, infographic-style milestone roadmap.")
 st.divider()
 
 # Sidebar Dashboard
@@ -98,7 +108,6 @@ if st.button("🚀 Run AI Decomposition Engine"):
         # Smart Context-Aware Decomposition
         lower_desc = task_desc.lower()
         if any(word in lower_desc for word in ["ppt", "presentation", "slides", "slide deck", "powerpoint"]):
-            # Specific steps for PPT (requested in previous turn)
             subtasks = [
                 "Outline slide deck structure & key headings",
                 "Collect essential info, facts, & talking points",
@@ -121,7 +130,6 @@ if st.button("🚀 Run AI Decomposition Engine"):
                 "Final active recall session & timed mock review"
             ]
         else:
-            # Fallback for generic tasks like writing (requested in previous turn)
             subtasks = [
                 "Define core goals & break down requirements",
                 "Draft initial outline or structural framework",
@@ -129,7 +137,6 @@ if st.button("🚀 Run AI Decomposition Engine"):
                 "Final proofread, polish, & submission preparation"
             ]
         
-        # Priority calculation formula
         priority_score = round((importance * 4.0) / max(days_left, 0.1), 2)
         
         new_task = {
@@ -141,7 +148,6 @@ if st.button("🚀 Run AI Decomposition Engine"):
         }
         
         data["tasks"].append(new_task)
-        # data["xp"] += 20  # Removed to focus XP only on step completion as per checklist requirement
         save_data(data)
         
         st.success(f"Goal analyzed and scheduled with priority score {priority_score}!")
@@ -149,91 +155,45 @@ if st.button("🚀 Run AI Decomposition Engine"):
 
 st.divider()
 
-# Display Schedule as a Visual Infographic-style Roadmap
+# Display Schedule as an Infographic Checklist Roadmap
 st.subheader("📋 Professional Milestone Roadmap")
 if not data["tasks"]:
-    st.info("No tasks added yet. Enter a task above to generate your interactive roadmap!")
+    st.info("No tasks added yet. Enter a task above to generate your roadmap!")
 else:
     for i, t in enumerate(data["tasks"]):
-        # Card container for task header
         st.markdown(f"""
         <div class="task-card">
             <h3 style="margin-top: 0; color: #1f2937;">📌 {t['title'].title()}</h3>
-            <p style="color: #4b5563; margin-bottom: 5px;"><b>Deadline:</b> {t['days']} days left &nbsp;|&nbsp; <b>Priority Score:</b> <code>{t['score']}</code></p>
-        </div>
+            <p style="color: #4b5563; margin-bottom: 15px;"><b>Deadline:</b> {t['days']} days left &nbsp;|&nbsp; <b>Priority Score:</b> <code>{t['score']}</code></p>
         """, unsafe_allow_html=True)
         
-        st.markdown("**Check off milestones to progress:**")
+        st.markdown("**Interactive Infographic Milestones:**")
         
-        # Compatibility fix for older JSON data structures
         if "completed" not in t:
             t["completed"] = [False] * len(t["subtasks"])
             
-        # Create beautiful timeline milestones using sac.steps
-        # This replaces the generic checkbox checklist with a beautiful interactive timeline[cite: 3]
-        sac_steps = []
-        current_step_index = 0
-        
-        # Calculate progress and update completion status dynamically
         xp_earned_this_refresh = 0
         new_completion_status = []
         
         for j, sub in enumerate(t["subtasks"]):
-            # Use columns to put a standard checkbox next to the description.
-            # We must use standard checkboxes to allow XP calculation on click, sac.steps is static.
-            c1, c2 = st.columns([0.1, 0.9])
-            
+            # Clean layout for checkbox + roadmap step text
+            c1, c2 = st.columns([0.08, 0.92])
             with c1:
-                # Add extra padding/alignment fix to get checkbox in line with text
-                st.markdown('<div style="margin-top: -3px;">', unsafe_allow_html=True)
-                is_checked = st.checkbox("", value=t["completed"][j], key=f"sac_task_{i}_check_{j}")
-                st.markdown('</div>', unsafe_allow_html=True)
+                is_checked = st.checkbox("", value=t["completed"][j], key=f"clean_task_{i}_check_{j}")
                 new_completion_status.append(is_checked)
-                
                 if is_checked and not t["completed"][j]:
-                    xp_earned_this_refresh += 10 # 10 XP per step
-
+                    xp_earned_this_refresh += 10
             with c2:
-                # Color code current vs completed vs pending steps for visual roadmap effect[cite: 1, 3]
-                desc_style = "color: #4b5563;" # Pending
+                step_num = j + 1
                 if is_checked:
-                    desc_style = "color: #9ca3af; text-decoration: line-through;" # Completed
-                    current_step_index = max(current_step_index, j + 1)
-                
-                st.markdown(f'<p style="{desc_style} margin: 0 0 8px 0;">⏳ {sub}</p>', unsafe_allow_html=True)
+                    st.markdown(f"<div style='background: #f1f5f9; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #10b981; color: #9ca3af; text-decoration: line-through;'><b>Phase {step_num}:</b> {sub}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #6366f1; color: #334155;'><b>Phase {step_num}:</b> {sub}</div>", unsafe_allow_html=True)
 
-        # Update XP and save if status changed (XP gamification requirement from turn 3)
         if new_completion_status != t["completed"]:
             t["completed"] = new_completion_status
             data["xp"] += xp_earned_this_refresh
             save_data(data)
-            # Re-calculating badges based on new XP (Badge requirement from turn 1)
-            # Not needed because sidebar handles it on refresh.
             st.rerun()
-
-        # Render the overall vertical progress timeline graphic after the checklist[cite: 3]
-        total_steps = len(t["subtasks"])
-        items = []
-        for index in range(total_steps):
-            title_text = f"Step {index+1}"
-            status = 'wait'
-            icon = sac.AntIcon(name='clock-circle-o', size=18)
             
-            if index < current_step_index:
-                status = 'finish'
-                icon = sac.AntIcon(name='check-circle-o', size=18)
-            elif index == current_step_index:
-                status = 'process'
-                icon = sac.AntIcon(name='rocket', size=18)
-                
-            items.append(sac.StepsItem(title=title_text, status=status, icon=icon))
-            
-        sac.steps(
-            items=items,
-            current=current_step_index,
-            direction='vertical',
-            size='small',
-            placement='right'
-        )
-            
-        st.write("---")
+        st.markdown("</div>", unsafe_allow_html=True)
