@@ -1,10 +1,11 @@
+
 import streamlit as st
 import json
 import os
 
 st.set_page_config(page_title="TaskAura AI", page_icon="🎓", layout="centered")
 
-# Custom CSS for a professional step-by-step UI
+# Custom CSS for a professional, interactive UI
 st.markdown("""
 <style>
     .stButton>button {
@@ -38,15 +39,6 @@ st.markdown("""
         border-right: 1px solid #e5e7eb;
         border-bottom: 1px solid #e5e7eb;
     }
-    .step-box {
-        background-color: #f8fafc;
-        padding: 10px 14px;
-        border-radius: 8px;
-        border-left: 4px solid #a855f7;
-        margin-bottom: 8px;
-        font-size: 14px;
-        color: #334155;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -70,7 +62,7 @@ data = load_data()
 # App Header
 st.title("🎓 TaskAura AI")
 st.markdown("### *Intelligent Student Task Decomposition & Prioritizer*")
-st.write("Transform any exam, physical project, or PowerPoint presentation into an automated step-by-step milestone pipeline.")
+st.write("Transform any exam, presentation, or project into an interactive, step-by-step milestone roadmap.")
 st.divider()
 
 # Sidebar Dashboard
@@ -80,10 +72,10 @@ st.sidebar.metric("Total XP", f"{data['xp']} XP")
 level = 1 + data['xp'] // 100
 st.sidebar.metric("Student Level", f"Level {level}")
 
-if data['xp'] >= 50:
+if data['xp'] >= 100:
     st.sidebar.success("🏆 Badge: Productivity Master")
 else:
-    st.sidebar.info("🎯 Complete tasks to unlock badges!")
+    st.sidebar.info("🎯 Complete milestones to earn XP & unlock badges!")
 
 if st.sidebar.button("🚨 Reset Progress"):
     save_data({"tasks": [], "xp": 0})
@@ -103,50 +95,50 @@ if st.button("🚀 Run AI Decomposition Engine"):
     if not task_desc.strip():
         st.warning("Please enter a task description first.")
     else:
-        # Smart Context-Aware Decomposition for PPT, Exams, and Projects
+        # Smart Context-Aware Decomposition
         lower_desc = task_desc.lower()
         if any(word in lower_desc for word in ["ppt", "presentation", "slides", "slide deck", "powerpoint"]):
             subtasks = [
-                "Step 1: Outline the slide deck structure and key headings",
-                "Step 2: Collect essential info, facts, and talking points",
-                "Step 3: Verify data accuracy and filter key highlights",
-                "Step 4: Customize slide layouts and content blocks",
-                "Step 5: Beautify with icons, color themes, and visuals"
+                "Outline slide deck structure & key headings",
+                "Collect essential info, facts, & talking points",
+                "Verify data accuracy & filter key highlights",
+                "Customize slide layouts & content blocks",
+                "Beautify with icons, color themes, & visuals"
             ]
         elif any(word in lower_desc for word in ["project", "poster", "model", "chart", "craft", "exhibition"]):
             subtasks = [
-                "Step 1: Research core theme and outline project objectives",
-                "Step 2: Gather required resources, materials, or reference data",
-                "Step 3: Draft/build the core project content or prototype",
-                "Step 4: Finalize presentation, label sections, and review guidelines"
+                "Research core theme & outline objectives",
+                "Gather required resources, materials, or data",
+                "Draft/build core project content or prototype",
+                "Finalize presentation, labels, & guidelines review"
             ]
         elif any(word in lower_desc for word in ["exam", "test", "quiz", "midterm", "finals"]):
             subtasks = [
-                "Step 1: Review core textbook chapters and high-weightage topics",
-                "Step 2: Create structured flashcards and short summary notes",
-                "Step 3: Solve practice questions, sample papers, or past quizzes",
-                "Step 4: Final active recall session and timed mock review"
+                "Review core textbook chapters & high-weightage topics",
+                "Create structured flashcards & summary notes",
+                "Solve practice questions, sample papers, or past quizzes",
+                "Final active recall session & timed mock review"
             ]
         else:
             subtasks = [
-                "Step 1: Define core goals and break down requirements",
-                "Step 2: Draft initial outline or structural framework",
-                "Step 3: Execute main development/writing phase",
-                "Step 4: Final proofread, polish, and submission preparation"
+                "Define core goals & break down requirements",
+                "Draft initial outline or structural framework",
+                "Execute main development/writing phase",
+                "Final proofread, polish, & submission preparation"
             ]
         
-        # Priority calculation formula
         priority_score = round((importance * 4.0) / max(days_left, 0.1), 2)
         
         new_task = {
             "title": task_desc,
             "days": days_left,
             "score": priority_score,
-            "subtasks": subtasks
+            "subtasks": subtasks,
+            "completed": [False] * len(subtasks)
         }
         
         data["tasks"].append(new_task)
-        data["xp"] += 50
+        data["xp"] += 20  # Bonus XP for creating a task
         save_data(data)
         
         st.success(f"Successfully decomposed! Priority Score: {priority_score}")
@@ -154,20 +146,35 @@ if st.button("🚀 Run AI Decomposition Engine"):
 
 st.divider()
 
-# Display Schedule as a Visual Step-by-Step Pipeline
-st.subheader("📋 Intelligent Step-by-Step Roadmap")
+# Display Schedule as Interactive Checklists
+st.subheader("📋 Interactive Milestone Roadmaps")
 if not data["tasks"]:
-    st.info("No tasks added yet. Enter a task above to generate your milestone pipeline!")
+    st.info("No tasks added yet. Enter a task above to generate your interactive roadmap!")
 else:
     for i, t in enumerate(data["tasks"]):
         st.markdown(f"""
         <div class="task-card">
             <h3 style="margin-top: 0; color: #1f2937;">📌 {t['title'].title()}</h3>
-            <p style="color: #4b5563; margin-bottom: 15px;"><b>Deadline:</b> {t['days']} days left &nbsp;|&nbsp; <b>Priority Score:</b> <code>{t['score']}</code></p>
+            <p style="color: #4b5563; margin-bottom: 10px;"><b>Deadline:</b> {t['days']} days left &nbsp;|&nbsp; <b>Priority Score:</b> <code>{t['score']}</code></p>
         """, unsafe_allow_html=True)
         
-        st.markdown("**Milestone Progression:**")
-        for sub in t["subtasks"]:
-            st.markdown(f'<div class="step-box">⏳ {sub}</div>', unsafe_allow_html=True)
+        st.markdown("**Check off milestones as you complete them:**")
+        
+        # Ensure compatibility with older saved json data structures
+        if "completed" not in t:
+            t["completed"] = [False] * len(t["subtasks"])
+            
+        updated_completed = []
+        for j, sub in enumerate(t["subtasks"]):
+            is_checked = st.checkbox(sub, value=t["completed"][j], key=f"task_{i}_sub_{j}")
+            updated_completed.append(is_checked)
+            
+        # Check if state changed to award XP dynamically
+        if updated_completed != t["completed"]:
+            t["completed"] = updated_completed
+            # Count newly checked items or give rewards
+            data["xp"] += 10
+            save_data(data)
+            st.rerun()
             
         st.markdown("</div>", unsafe_allow_html=True)
