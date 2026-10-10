@@ -182,18 +182,12 @@ with tab2:
             new_status = []
             
             for j, sub in enumerate(t["subtasks"]):
-                c1, c2 = st.columns([0.08, 0.92])
-                with c1:
-                    is_checked = st.checkbox("", value=t["completed"][j], key=f"tab2_task_{i}_check_{j}")
-                    new_status.append(is_checked)
-                    if is_checked and not t["completed"][j]:
-                        xp_earned += 15
-                with c2:
-                    step_num = j + 1
-                    if is_checked:
-                        st.markdown(f"<div style='background: #f1f5f9; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #10b981; color: #9ca3af; text-decoration: line-through;'><b>Phase {step_num}:</b> {sub}</div>", unsafe_allow_html=True)
-                    else:
-                        st.markdown(f"<div style='background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #6366f1; color: #334155;'><b>Phase {step_num}:</b> {sub}</div>", unsafe_allow_html=True)
+                step_num = j + 1
+                # Fixed: Give the checkbox a proper label instead of an empty string
+                is_checked = st.checkbox(f"Phase {step_num}: {sub}", value=t["completed"][j], key=f"tab2_task_{i}_check_{j}")
+                new_status.append(is_checked)
+                if is_checked and not t["completed"][j]:
+                    xp_earned += 15
 
             if new_status != t["completed"]:
                 t["completed"] = new_status
@@ -216,7 +210,6 @@ with tab3:
         target_task = next((t for t in data["tasks"] if t["title"] == selected_task_title), None)
         
         if target_task and target_task["subtasks"]:
-            # Check if all steps are completed
             if "completed" not in target_task:
                 target_task["completed"] = [False] * len(target_task["subtasks"])
                 
@@ -225,7 +218,6 @@ with tab3:
             if all_done:
                 st.success("🎉 Incredible job! All phases for this task are already completed. You crushed it!")
             else:
-                # Find the first uncompleted step
                 first_uncompleted_idx = target_task["completed"].index(False)
                 micro_step = target_task["subtasks"][first_uncompleted_idx]
                 
@@ -240,7 +232,6 @@ with tab3:
                 """, unsafe_allow_html=True)
                 
                 if st.button("✨ I Completed This Micro-Step (+15 XP)"):
-                    # Anti-cheat check: only mark it complete if it isn't already checked
                     if not target_task["completed"][first_uncompleted_idx]:
                         target_task["completed"][first_uncompleted_idx] = True
                         data["xp"] += 15
