@@ -1,7 +1,6 @@
 import streamlit as st
 import json
 import os
-import random
 
 st.set_page_config(page_title="TaskAura AI", page_icon="🎓", layout="centered")
 
@@ -214,33 +213,38 @@ with tab3:
         task_titles = [t["title"] for t in data["tasks"]]
         selected_task_title = st.selectbox("Select the task you are avoiding:", task_titles)
         
-        # Find the selected task object
         target_task = next((t for t in data["tasks"] if t["title"] == selected_task_title), None)
         
         if target_task and target_task["subtasks"]:
-            # Find the first uncompleted subtask or default to the first one
-            first_uncompleted_idx = 0
-            for idx, status in enumerate(target_task.get("completed", [])):
-                if not status:
-                    first_uncompleted_idx = idx
-                    break
-            micro_step = target_task["subtasks"][first_uncompleted_idx]
+            # Check if all steps are completed
+            if "completed" not in target_task:
+                target_task["completed"] = [False] * len(target_task["subtasks"])
+                
+            all_done = all(target_task["completed"])
             
-            st.markdown(f"""
-            <div class="rescue-box">
-                <h3 style="margin-top: 0; color: #b45309;">🔬 Your 5-Minute Micro-Action Plan</h3>
-                <p style="font-size: 16px; color: #78350f;">Instead of thinking about the entire assignment, your *only* goal right now is:</p>
-                <p style="font-size: 18px; font-weight: bold; color: #92400e;">👉 {micro_step}</p>
-                <hr style="border-color: #f6d860;">
-                <p style="margin-bottom: 0; font-size: 14px; color: #78350f;"><b>Rule of Thumb:</b> Set a timer for 5 minutes. If you want to stop after 5 minutes, you are free to stop—no guilt. But taking that first small step breaks the paralysis!</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            if st.button("✨ I Completed This Micro-Step (+15 XP)"):
-                # Mark that specific step as completed automatically
-                target_task["completed"][first_uncompleted_idx] = True
-                data["xp"] += 15
-                save_data(data)
-                st.balloons()
-                st.success("Amazing job! You broke the inertia. Keep that momentum going!")
-                st.rerun()
+            if all_done:
+                st.success("🎉 Incredible job! All phases for this task are already completed. You crushed it!")
+            else:
+                # Find the first uncompleted step
+                first_uncompleted_idx = target_task["completed"].index(False)
+                micro_step = target_task["subtasks"][first_uncompleted_idx]
+                
+                st.markdown(f"""
+                <div class="rescue-box">
+                    <h3 style="margin-top: 0; color: #b45309;">🔬 Your 5-Minute Micro-Action Plan</h3>
+                    <p style="font-size: 16px; color: #78350f;">Instead of thinking about the entire assignment, your *only* goal right now is:</p>
+                    <p style="font-size: 18px; font-weight: bold; color: #92400e;">👉 Phase {first_uncompleted_idx + 1}: {micro_step}</p>
+                    <hr style="border-color: #f6d860;">
+                    <p style="margin-bottom: 0; font-size: 14px; color: #78350f;"><b>Rule of Thumb:</b> Set a timer for 5 minutes. Take that first small step to break the paralysis!</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if st.button("✨ I Completed This Micro-Step (+15 XP)"):
+                    # Anti-cheat check: only mark it complete if it isn't already checked
+                    if not target_task["completed"][first_uncompleted_idx]:
+                        target_task["completed"][first_uncompleted_idx] = True
+                        data["xp"] += 15
+                        save_data(data)
+                        st.balloons()
+                        st.success("Milestone locked in! Great job breaking the inertia.")
+                        st.rerun()
