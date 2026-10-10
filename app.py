@@ -1,10 +1,11 @@
 import streamlit as st
 import json
 import os
+import random
 
 st.set_page_config(page_title="TaskAura AI", page_icon="🎓", layout="centered")
 
-# Custom CSS for infographic-style steps and modern card styling
+# Custom CSS for modern UI
 st.markdown("""
 <style>
     .stButton>button {
@@ -29,25 +30,21 @@ st.markdown("""
     }
     .task-card {
         background-color: #ffffff;
-        padding: 22px;
+        padding: 20px;
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         border-left: 6px solid #6366f1;
         border-top: 1px solid #e5e7eb;
         border-right: 1px solid #e5e7eb;
         border-bottom: 1px solid #e5e7eb;
     }
-    .infographic-step {
-        display: flex;
-        align-items: center;
-        background: #f8fafc;
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        border-left: 4px solid #a855f7;
-        font-weight: 500;
-        color: #334155;
+    .rescue-box {
+        background: linear-gradient(135deg, #fef3c7 0%, #fee2e2 100%);
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 6px solid #f59e0b;
+        margin-bottom: 20px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -71,8 +68,7 @@ data = load_data()
 
 # App Header
 st.title("🎓 TaskAura AI")
-st.markdown("### *Intelligent Student Task Decomposition & Prioritizer*")
-st.write("Transform any exam, presentation, or project into an interactive, infographic-style milestone roadmap.")
+st.markdown("### *Intelligent Student Task Prioritizer & Anti-Procrastination Engine*")
 st.divider()
 
 # Sidebar Dashboard
@@ -85,115 +81,166 @@ st.sidebar.metric("Student Level", f"Level {level}")
 if data['xp'] >= 100:
     st.sidebar.success("🏆 Badge: Productivity Master")
 else:
-    st.sidebar.info("🎯 Complete milestones to earn XP & unlock badges!")
+    st.sidebar.info("🎯 Complete milestones to unlock badges!")
 
 if st.sidebar.button("🚨 Reset Progress"):
     save_data({"tasks": [], "xp": 0})
     st.rerun()
 
-# Main Input Section
-st.subheader("✨ Add New Assignment, Exam, or Project")
-task_desc = st.text_input("What is your goal?", placeholder="e.g., complete social project on say no to drugs")
+# Tabs Layout
+tab1, tab2, tab3 = st.tabs(["📊 Priority Master List", "🗺️ Step-by-Step Roadmaps", "⚡ Anti-Procrastination Engine"])
 
-col1, col2 = st.columns(2)
-with col1:
-    days_left = st.number_input("Days left until deadline:", min_value=0.1, value=2.0, step=0.5)
-with col2:
-    importance = st.slider("Importance Level (1-10):", min_value=1, max_value=10, value=8)
+with tab1:
+    st.subheader("✨ Add New Assignment, Exam, or PPT")
+    task_desc = st.text_input("What is your goal?", placeholder="e.g., create ppt on artificial intelligence", key="input_task")
 
-if st.button("🚀 Run AI Decomposition Engine"):
-    if not task_desc.strip():
-        st.warning("Please enter a goal description first.")
-    else:
-        # Smart Context-Aware Decomposition
-        lower_desc = task_desc.lower()
-        if any(word in lower_desc for word in ["ppt", "presentation", "slides", "slide deck", "powerpoint"]):
-            subtasks = [
-                "Outline slide deck structure & key headings",
-                "Collect essential info, facts, & talking points",
-                "Verify data accuracy & filter key highlights",
-                "Customize slide layouts & content blocks",
-                "Beautify with icons, color themes, & visuals"
-            ]
-        elif any(word in lower_desc for word in ["project", "poster", "model", "chart", "craft", "exhibition"]):
-            subtasks = [
-                "Research core theme & outline project objectives",
-                "Gather required resources, materials, or reference data",
-                "Draft/build the core project content or prototype",
-                "Finalize presentation, label sections, & guidelines review"
-            ]
-        elif any(word in lower_desc for word in ["exam", "test", "quiz", "midterm", "finals"]):
-            subtasks = [
-                "Review core textbook chapters & high-weightage topics",
-                "Create structured flashcards & short summary notes",
-                "Solve practice questions, sample papers, or past quizzes",
-                "Final active recall session & timed mock review"
-            ]
+    col1, col2 = st.columns(2)
+    with col1:
+        days_left = st.number_input("Days left until deadline:", min_value=0.1, value=2.0, step=0.5, key="input_days")
+    with col2:
+        importance = st.slider("Importance Level (1-10):", min_value=1, max_value=10, value=8, key="input_imp")
+
+    if st.button("🚀 Analyze & Prioritize Task"):
+        if not task_desc.strip():
+            st.warning("Please enter a goal description first.")
         else:
-            subtasks = [
-                "Define core goals & break down requirements",
-                "Draft initial outline or structural framework",
-                "Execute main development/writing phase",
-                "Final proofread, polish, & submission preparation"
-            ]
-        
-        priority_score = round((importance * 4.0) / max(days_left, 0.1), 2)
-        
-        new_task = {
-            "title": task_desc,
-            "days": days_left,
-            "score": priority_score,
-            "subtasks": subtasks,
-            "completed": [False] * len(subtasks)
-        }
-        
-        data["tasks"].append(new_task)
-        save_data(data)
-        
-        st.success(f"Goal analyzed and scheduled with priority score {priority_score}!")
-        st.rerun()
-
-st.divider()
-
-# Display Schedule as an Infographic Checklist Roadmap
-st.subheader("📋 Professional Milestone Roadmap")
-if not data["tasks"]:
-    st.info("No tasks added yet. Enter a task above to generate your roadmap!")
-else:
-    for i, t in enumerate(data["tasks"]):
-        st.markdown(f"""
-        <div class="task-card">
-            <h3 style="margin-top: 0; color: #1f2937;">📌 {t['title'].title()}</h3>
-            <p style="color: #4b5563; margin-bottom: 15px;"><b>Deadline:</b> {t['days']} days left &nbsp;|&nbsp; <b>Priority Score:</b> <code>{t['score']}</code></p>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("**Interactive Infographic Milestones:**")
-        
-        if "completed" not in t:
-            t["completed"] = [False] * len(t["subtasks"])
+            lower_desc = task_desc.lower()
+            if any(word in lower_desc for word in ["ppt", "presentation", "slides", "slide deck", "powerpoint"]):
+                subtasks = [
+                    "Outline slide deck structure & key headings",
+                    "Collect essential info, facts, & talking points",
+                    "Verify data accuracy & filter key highlights",
+                    "Customize slide layouts & content blocks",
+                    "Beautify with icons, color themes, & visuals"
+                ]
+            elif any(word in lower_desc for word in ["project", "poster", "model", "chart", "craft", "exhibition"]):
+                subtasks = [
+                    "Research core theme & outline project objectives",
+                    "Gather required resources, materials, or reference data",
+                    "Draft/build the core project content or prototype",
+                    "Finalize presentation, label sections, & guidelines review"
+                ]
+            elif any(word in lower_desc for word in ["exam", "test", "quiz", "midterm", "finals"]):
+                subtasks = [
+                    "Review core textbook chapters & high-weightage topics",
+                    "Create structured flashcards & short summary notes",
+                    "Solve practice questions, sample papers, or past quizzes",
+                    "Final active recall session & timed mock review"
+                ]
+            else:
+                subtasks = [
+                    "Define core goals & break down requirements",
+                    "Draft initial outline or structural framework",
+                    "Execute main development/writing phase",
+                    "Final proofread, polish, & submission preparation"
+                ]
             
-        xp_earned_this_refresh = 0
-        new_completion_status = []
-        
-        for j, sub in enumerate(t["subtasks"]):
-            # Clean layout for checkbox + roadmap step text
-            c1, c2 = st.columns([0.08, 0.92])
-            with c1:
-                is_checked = st.checkbox("", value=t["completed"][j], key=f"clean_task_{i}_check_{j}")
-                new_completion_status.append(is_checked)
-                if is_checked and not t["completed"][j]:
-                    xp_earned_this_refresh += 10
-            with c2:
-                step_num = j + 1
-                if is_checked:
-                    st.markdown(f"<div style='background: #f1f5f9; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #10b981; color: #9ca3af; text-decoration: line-through;'><b>Phase {step_num}:</b> {sub}</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<div style='background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #6366f1; color: #334155;'><b>Phase {step_num}:</b> {sub}</div>", unsafe_allow_html=True)
-
-        if new_completion_status != t["completed"]:
-            t["completed"] = new_completion_status
-            data["xp"] += xp_earned_this_refresh
+            priority_score = round((importance * 4.0) / max(days_left, 0.1), 2)
+            
+            new_task = {
+                "title": task_desc,
+                "days": days_left,
+                "score": priority_score,
+                "subtasks": subtasks,
+                "completed": [False] * len(subtasks)
+            }
+            
+            data["tasks"].append(new_task)
             save_data(data)
+            st.success("Task added successfully! Check the Priority List below.")
             st.rerun()
+
+    st.divider()
+    st.subheader("🔥 Ranked Priority Schedule")
+    if not data["tasks"]:
+        st.info("No tasks added yet. Add a task above to see your ranked priority queue.")
+    else:
+        sorted_tasks = sorted(data["tasks"], key=lambda x: x["score"], reverse=True)
+        for idx, t in enumerate(sorted_tasks):
+            st.markdown(f"""
+            <div class="task-card">
+                <h3 style="margin-top: 0; color: #1f2937;">#{idx+1}: {t['title'].title()}</h3>
+                <p style="color: #4b5563; margin-bottom: 0;"><b>Priority Score:</b> <code>{t['score']}</code> &nbsp;|&nbsp; <b>Deadline:</b> {t['days']} days left</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+with tab2:
+    st.subheader("🗺️ Interactive Milestone Roadmaps")
+    if not data["tasks"]:
+        st.info("No tasks found. Add a task in the first tab to view its step-by-step roadmap!")
+    else:
+        for i, t in enumerate(data["tasks"]):
+            st.markdown(f"""
+            <div class="task-card">
+                <h3 style="margin-top: 0; color: #1f2937;">📌 {t['title'].title()}</h3>
+                <p style="color: #4b5563; margin-bottom: 15px;"><b>Priority Score:</b> <code>{t['score']}</code></p>
+            """, unsafe_allow_html=True)
             
-        st.markdown("</div>", unsafe_allow_html=True)
+            if "completed" not in t:
+                t["completed"] = [False] * len(t["subtasks"])
+                
+            xp_earned = 0
+            new_status = []
+            
+            for j, sub in enumerate(t["subtasks"]):
+                c1, c2 = st.columns([0.08, 0.92])
+                with c1:
+                    is_checked = st.checkbox("", value=t["completed"][j], key=f"tab2_task_{i}_check_{j}")
+                    new_status.append(is_checked)
+                    if is_checked and not t["completed"][j]:
+                        xp_earned += 15
+                with c2:
+                    step_num = j + 1
+                    if is_checked:
+                        st.markdown(f"<div style='background: #f1f5f9; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #10b981; color: #9ca3af; text-decoration: line-through;'><b>Phase {step_num}:</b> {sub}</div>", unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"<div style='background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #6366f1; color: #334155;'><b>Phase {step_num}:</b> {sub}</div>", unsafe_allow_html=True)
+
+            if new_status != t["completed"]:
+                t["completed"] = new_status
+                data["xp"] += xp_earned
+                save_data(data)
+                st.rerun()
+                
+            st.markdown("</div>", unsafe_allow_html=True)
+
+with tab3:
+    st.subheader("⚡ Feeling sluggish? No worries, let's break it one step at a time.")
+    st.markdown("When you feel paralyzed or overwhelmed by a task, don't try to finish it all at once. Let's isolate the very first micro-action.")
+    
+    if not data["tasks"]:
+        st.info("Add a task in Tab 1 first so we can break it down for you!")
+    else:
+        task_titles = [t["title"] for t in data["tasks"]]
+        selected_task_title = st.selectbox("Select the task you are avoiding:", task_titles)
+        
+        # Find the selected task object
+        target_task = next((t for t in data["tasks"] if t["title"] == selected_task_title), None)
+        
+        if target_task and target_task["subtasks"]:
+            # Find the first uncompleted subtask or default to the first one
+            first_uncompleted_idx = 0
+            for idx, status in enumerate(target_task.get("completed", [])):
+                if not status:
+                    first_uncompleted_idx = idx
+                    break
+            micro_step = target_task["subtasks"][first_uncompleted_idx]
+            
+            st.markdown(f"""
+            <div class="rescue-box">
+                <h3 style="margin-top: 0; color: #b45309;">🔬 Your 5-Minute Micro-Action Plan</h3>
+                <p style="font-size: 16px; color: #78350f;">Instead of thinking about the entire assignment, your *only* goal right now is:</p>
+                <p style="font-size: 18px; font-weight: bold; color: #92400e;">👉 {micro_step}</p>
+                <hr style="border-color: #f6d860;">
+                <p style="margin-bottom: 0; font-size: 14px; color: #78350f;"><b>Rule of Thumb:</b> Set a timer for 5 minutes. If you want to stop after 5 minutes, you are free to stop—no guilt. But taking that first small step breaks the paralysis!</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            if st.button("✨ I Completed This Micro-Step (+15 XP)"):
+                # Mark that specific step as completed automatically
+                target_task["completed"][first_uncompleted_idx] = True
+                data["xp"] += 15
+                save_data(data)
+                st.balloons()
+                st.success("Amazing job! You broke the inertia. Keep that momentum going!")
+                st.rerun()
