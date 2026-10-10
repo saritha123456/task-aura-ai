@@ -230,13 +230,15 @@ with tab3:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                confirmed = st.checkbox("✅ I confirm I have focused on and completed this 5-minute micro-step", key=f"confirm_{selected_task_title}_{first_uncompleted_idx}")
-                
-                if st.button("✨ Claim XP & Advance", disabled=not confirmed):
-                    if not target_task["completed"][first_uncompleted_idx]:
-                        target_task["completed"][first_uncompleted_idx] = True
-                        data["xp"] += 15
-                        save_data(data)
-                        st.balloons()
-                        st.success("Milestone locked in! Moving to the next step...")
-                        st.rerun()
+                # Wrapped in a form to completely prevent multi-clicking / XP spamming
+                with st.form(key=f"rescue_form_{selected_task_title}_{first_uncompleted_idx}"):
+                    confirmed = st.checkbox("✅ I confirm I have focused on and completed this 5-minute micro-step")
+                    submit_clicked = st.form_submit_button("✨ Claim XP & Advance", disabled=not confirmed)
+                    
+                    if submit_clicked:
+                        if not target_task["completed"][first_uncompleted_idx]:
+                            target_task["completed"][first_uncompleted_idx] = True
+                            data["xp"] += 15
+                            save_data(data)
+                            st.success("Milestone locked in! Moving to the next step...")
+                            st.rerun()
