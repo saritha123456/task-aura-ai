@@ -4,7 +4,7 @@ import os
 
 st.set_page_config(page_title="TaskAura AI", page_icon="🎓", layout="centered")
 
-# Custom CSS for a beautiful, modern look
+# Custom CSS for a professional step-by-step UI
 st.markdown("""
 <style>
     .stButton>button {
@@ -29,14 +29,23 @@ st.markdown("""
     }
     .task-card {
         background-color: #ffffff;
-        padding: 20px;
+        padding: 22px;
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        margin-bottom: 15px;
-        border-left: 5px solid #6366f1;
+        margin-bottom: 20px;
+        border-left: 6px solid #6366f1;
         border-top: 1px solid #e5e7eb;
         border-right: 1px solid #e5e7eb;
         border-bottom: 1px solid #e5e7eb;
+    }
+    .step-box {
+        background-color: #f8fafc;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border-left: 4px solid #a855f7;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #334155;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -61,7 +70,7 @@ data = load_data()
 # App Header
 st.title("🎓 TaskAura AI")
 st.markdown("### *Intelligent Student Task Decomposition & Prioritizer*")
-st.write("Transform overwhelming assignments and exam preparation into structured, bite-sized steps instantly.")
+st.write("Transform any exam, physical project, or PowerPoint presentation into an automated step-by-step milestone pipeline.")
 st.divider()
 
 # Sidebar Dashboard
@@ -80,9 +89,9 @@ if st.sidebar.button("🚨 Reset Progress"):
     save_data({"tasks": [], "xp": 0})
     st.rerun()
 
-# Main Input Form Container
-st.subheader("✨ Add New Assignment or Exam")
-task_desc = st.text_input("What do you need to study or complete?", placeholder="e.g., Prepare for Physics chapter 3 exam")
+# Main Input Section
+st.subheader("✨ Add New Task, Exam, or PPT Presentation")
+task_desc = st.text_input("What do you need to accomplish?", placeholder="e.g., create ppt on artificial intelligence")
 
 col1, col2 = st.columns(2)
 with col1:
@@ -90,17 +99,41 @@ with col1:
 with col2:
     importance = st.slider("Importance Level (1-10):", min_value=1, max_value=10, value=8)
 
-if st.button("🚀 Analyze & Decompose Task"):
+if st.button("🚀 Run AI Decomposition Engine"):
     if not task_desc.strip():
         st.warning("Please enter a task description first.")
     else:
-        # Intelligent automated step-by-step breakdown
-        subtasks = [
-            f"Review core concepts and summaries for {task_desc}",
-            "Create short revision flashcards or mind maps",
-            "Solve practice problems or previous year questions",
-            "Final active recall session and timed review"
-        ]
+        # Smart Context-Aware Decomposition for PPT, Exams, and Projects
+        lower_desc = task_desc.lower()
+        if any(word in lower_desc for word in ["ppt", "presentation", "slides", "slide deck", "powerpoint"]):
+            subtasks = [
+                "Step 1: Outline the slide deck structure and key headings",
+                "Step 2: Collect essential info, facts, and talking points",
+                "Step 3: Verify data accuracy and filter key highlights",
+                "Step 4: Customize slide layouts and content blocks",
+                "Step 5: Beautify with icons, color themes, and visuals"
+            ]
+        elif any(word in lower_desc for word in ["project", "poster", "model", "chart", "craft", "exhibition"]):
+            subtasks = [
+                "Step 1: Research core theme and outline project objectives",
+                "Step 2: Gather required resources, materials, or reference data",
+                "Step 3: Draft/build the core project content or prototype",
+                "Step 4: Finalize presentation, label sections, and review guidelines"
+            ]
+        elif any(word in lower_desc for word in ["exam", "test", "quiz", "midterm", "finals"]):
+            subtasks = [
+                "Step 1: Review core textbook chapters and high-weightage topics",
+                "Step 2: Create structured flashcards and short summary notes",
+                "Step 3: Solve practice questions, sample papers, or past quizzes",
+                "Step 4: Final active recall session and timed mock review"
+            ]
+        else:
+            subtasks = [
+                "Step 1: Define core goals and break down requirements",
+                "Step 2: Draft initial outline or structural framework",
+                "Step 3: Execute main development/writing phase",
+                "Step 4: Final proofread, polish, and submission preparation"
+            ]
         
         # Priority calculation formula
         priority_score = round((importance * 4.0) / max(days_left, 0.1), 2)
@@ -116,24 +149,25 @@ if st.button("🚀 Analyze & Decompose Task"):
         data["xp"] += 50
         save_data(data)
         
-        st.success(f"Successfully scheduled! Priority Score: {priority_score}")
+        st.success(f"Successfully decomposed! Priority Score: {priority_score}")
         st.rerun()
 
 st.divider()
 
-# Display Schedule
-st.subheader("📋 Your Priority Schedule & Subtasks")
+# Display Schedule as a Visual Step-by-Step Pipeline
+st.subheader("📋 Intelligent Step-by-Step Roadmap")
 if not data["tasks"]:
-    st.info("No tasks added yet. Enter a task above to generate your smart schedule!")
+    st.info("No tasks added yet. Enter a task above to generate your milestone pipeline!")
 else:
     for i, t in enumerate(data["tasks"]):
         st.markdown(f"""
         <div class="task-card">
-            <h3 style="margin-top: 0; color: #1f2937;">📌 {t['title']}</h3>
-            <p style="color: #4b5563; margin-bottom: 0;"><b>Deadline:</b> {t['days']} days left &nbsp;|&nbsp; <b>Priority Score:</b> <code>{t['score']}</code></p>
-        </div>
+            <h3 style="margin-top: 0; color: #1f2937;">📌 {t['title'].title()}</h3>
+            <p style="color: #4b5563; margin-bottom: 15px;"><b>Deadline:</b> {t['days']} days left &nbsp;|&nbsp; <b>Priority Score:</b> <code>{t['score']}</code></p>
         """, unsafe_allow_html=True)
         
+        st.markdown("**Milestone Progression:**")
         for sub in t["subtasks"]:
-            st.checkbox(sub, key=f"sub_{i}_{sub}")
-        st.write("")
+            st.markdown(f'<div class="step-box">⏳ {sub}</div>', unsafe_allow_html=True)
+            
+        st.markdown("</div>", unsafe_allow_html=True)
