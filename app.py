@@ -230,12 +230,15 @@ with tab3:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                if st.button("✨ I Completed This Micro-Step (+15 XP)"):
+                # Anti-Cheat Accountability Checkbox
+                confirmed = st.checkbox("✅ I confirm I have focused on and completed this 5-minute micro-step", key=f"confirm_{selected_task_title}_{first_uncompleted_idx}")
+                
+                # Button is disabled unless the accountability checkbox is checked
+                if st.button("✨ Claim XP & Advance", disabled=not confirmed):
                     if not target_task["completed"][first_uncompleted_idx]:
-                        # Automatically check it off in the master data structure
                         target_task["completed"][first_uncompleted_idx] = True
                         data["xp"] += 15
                         save_data(data)
                         st.balloons()
-                        st.success("Milestone locked in and checked off! Advancing to the next phase...")
+                        st.success("Milestone locked in! Moving to the next step...")
                         st.rerun()
