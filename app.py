@@ -183,7 +183,6 @@ with tab2:
             
             for j, sub in enumerate(t["subtasks"]):
                 step_num = j + 1
-                # Fixed: Give the checkbox a proper label instead of an empty string
                 is_checked = st.checkbox(f"Phase {step_num}: {sub}", value=t["completed"][j], key=f"tab2_task_{i}_check_{j}")
                 new_status.append(is_checked)
                 if is_checked and not t["completed"][j]:
@@ -233,9 +232,10 @@ with tab3:
                 
                 if st.button("✨ I Completed This Micro-Step (+15 XP)"):
                     if not target_task["completed"][first_uncompleted_idx]:
+                        # Automatically check it off in the master data structure
                         target_task["completed"][first_uncompleted_idx] = True
                         data["xp"] += 15
                         save_data(data)
                         st.balloons()
-                        st.success("Milestone locked in! Great job breaking the inertia.")
+                        st.success("Milestone locked in and checked off! Advancing to the next phase...")
                         st.rerun()
