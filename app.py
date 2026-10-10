@@ -204,7 +204,7 @@ with tab3:
         st.info("Add a task in Tab 1 first so we can break it down for you!")
     else:
         task_titles = [t["title"] for t in data["tasks"]]
-        selected_task_title = st.selectbox("Select the task you are avoiding:", task_titles)
+        selected_task_title = st.selectbox("Select the task you are avoiding:", task_titles, key="rescue_select")
         
         target_task = next((t for t in data["tasks"] if t["title"] == selected_task_title), None)
         
@@ -230,10 +230,8 @@ with tab3:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Anti-Cheat Accountability Checkbox
                 confirmed = st.checkbox("✅ I confirm I have focused on and completed this 5-minute micro-step", key=f"confirm_{selected_task_title}_{first_uncompleted_idx}")
                 
-                # Button is disabled unless the accountability checkbox is checked
                 if st.button("✨ Claim XP & Advance", disabled=not confirmed):
                     if not target_task["completed"][first_uncompleted_idx]:
                         target_task["completed"][first_uncompleted_idx] = True
