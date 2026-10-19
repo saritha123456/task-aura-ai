@@ -258,5 +258,5 @@ with tab3:
                         data["xp"] += 15
                         save_data(data)
                         st.balloons()
-                        st.success("🎉 +15 XP Claimed! Advancing to the next phase...")
+                        st.success("🎉 +15 XP Claimed! Advanced to the next phase.")
                         st.rerun()
