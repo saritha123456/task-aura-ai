@@ -178,6 +178,8 @@ with tab1:
 
 with tab2:
     st.subheader("🗺️ Interactive Milestone Roadmaps")
+    st.markdown("Check off your progress here or use Tab 3 for anti-procrastination guidance!")
+    
     if not data["tasks"]:
         st.info("No tasks found. Add a task in the first tab to view its step-by-step roadmap!")
     else:
@@ -191,24 +193,26 @@ with tab2:
             if "completed" not in t or len(t["completed"]) != len(t["subtasks"]):
                 t["completed"] = [False] * len(t["subtasks"])
                 
-            xp_earned = 0
-            new_status = []
-            
+            updated = False
             for j, sub in enumerate(t["subtasks"]):
                 step_num = j + 1
-                is_checked = st.checkbox(f"Phase {step_num}: {sub}", value=t["completed"][j], key=f"tab2_task_{i}_check_{j}")
-                new_status.append(is_checked)
-                if is_checked and not t["completed"][j]:
-                    xp_earned += 15
+                # Use current saved state directly as the default value
+                current_val = t["completed"][j]
+                is_checked = st.checkbox(f"Phase {step_num}: {sub}", value=current_val, key=f"tab2_task_{i}_check_{j}")
+                
+                if is_checked != current_val:
+                    t["completed"][j] = is_checked
+                    if is_checked:
+                        data["xp"] += 15
+                    else:
+                        data["xp"] = max(0, data["xp"] - 15)
+                    updated = True
 
-            if new_status != t["completed"]:
-                t["completed"] = new_status
-                data["xp"] += xp_earned
+            if updated:
                 save_data(data)
                 st.rerun()
                 
             st.markdown("</div>", unsafe_allow_html=True)
-
 with tab3:
     st.subheader("⚡ Feeling sluggish? No worries, let's break it one step at a time.")
     st.markdown("When you feel paralyzed or overwhelmed by a task, don't try to finish it all at once. Let's isolate the very first micro-action.")
