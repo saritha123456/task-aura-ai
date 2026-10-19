@@ -248,4 +248,4 @@ with tab3:
                             data["xp"] += 15
                             save_data(data)
                             st.balloons()
-                            st.rerun()ss
+                            st.rerun()
