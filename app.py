@@ -90,8 +90,8 @@ if st.sidebar.button("🚨 Reset Progress"):
 tab1, tab2, tab3 = st.tabs(["📊 Priority Master List", "🗺️ Step-by-Step Roadmaps", "⚡ Anti-Procrastination Engine"])
 
 with tab1:
-    st.subheader("✨ Add New Assignment, Exam, or PPT")
-    task_desc = st.text_input("What is your goal?", placeholder="e.g., create ppt on artificial intelligence", key="input_task")
+    st.subheader("✨ Add Any Assignment, Goal, or Task")
+    task_desc = st.text_input("What is your goal?", placeholder="e.g., clean room, physics homework, gym routine...", key="input_task")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -103,51 +103,58 @@ with tab1:
         if not task_desc.strip():
             st.warning("Please enter a goal description first.")
         else:
-            lower_desc = task_desc.lower()
-            if any(word in lower_desc for word in ["ppt", "presentation", "slides", "slide deck", "powerpoint"]):
-                subtasks = [
-                    "Outline slide deck structure & key headings",
-                    "Collect essential info, facts, & talking points",
-                    "Verify data accuracy & filter key highlights",
-                    "Customize slide layouts & content blocks",
-                    "Beautify with icons, color themes, & visuals"
-                ]
-            elif any(word in lower_desc for word in ["project", "poster", "model", "chart", "craft", "exhibition"]):
-                subtasks = [
-                    "Research core theme & outline project objectives",
-                    "Gather required resources, materials, or reference data",
-                    "Draft/build the core project content or prototype",
-                    "Finalize presentation, label sections, & guidelines review"
-                ]
-            elif any(word in lower_desc for word in ["exam", "test", "quiz", "midterm", "finals"]):
-                subtasks = [
-                    "Review core textbook chapters & high-weightage topics",
-                    "Create structured flashcards & short summary notes",
-                    "Solve practice questions, sample papers, or past quizzes",
-                    "Final active recall session & timed mock review"
-                ]
+            # FIX 3: Prevent duplicate task creation if clicked multiple times
+            lower_desc = task_desc.strip().lower()
+            existing_titles = [t["title"].strip().lower() for t in data["tasks"]]
+            
+            if lower_desc in existing_titles:
+                st.warning("⚠️ This task is already in your priority list!")
             else:
-                subtasks = [
-                    "Define core goals & break down requirements",
-                    "Draft initial outline or structural framework",
-                    "Execute main development/writing phase",
-                    "Final proofread, polish, & submission preparation"
-                ]
-            
-            priority_score = round((importance * 4.0) / max(days_left, 0.1), 2)
-            
-            new_task = {
-                "title": task_desc,
-                "days": days_left,
-                "score": priority_score,
-                "subtasks": subtasks,
-                "completed": [False] * len(subtasks)
-            }
-            
-            data["tasks"].append(new_task)
-            save_data(data)
-            st.success("Task added successfully! Check the Priority List below.")
-            st.rerun()
+                # FIX 2: Universal task breaker supporting ANY type of goal
+                if any(word in lower_desc for word in ["ppt", "presentation", "slides", "slide deck", "powerpoint"]):
+                    subtasks = [
+                        "Outline slide deck structure & key headings",
+                        "Collect essential info, facts, & talking points",
+                        "Verify data accuracy & filter key highlights",
+                        "Customize slide layouts & content blocks",
+                        "Beautify with icons, color themes, & visuals"
+                    ]
+                elif any(word in lower_desc for word in ["project", "poster", "model", "chart", "craft", "exhibition"]):
+                    subtasks = [
+                        "Research core theme & outline project objectives",
+                        "Gather required resources, materials, or reference data",
+                        "Draft/build the core project content or prototype",
+                        "Finalize presentation, label sections, & guidelines review"
+                    ]
+                elif any(word in lower_desc for word in ["exam", "test", "quiz", "midterm", "finals", "study"]):
+                    subtasks = [
+                        "Review core textbook chapters & high-weightage topics",
+                        "Create structured flashcards & short summary notes",
+                        "Solve practice questions, sample papers, or past quizzes",
+                        "Final active recall session & timed mock review"
+                    ]
+                else:
+                    subtasks = [
+                        "Define core objective and gather necessary resources",
+                        "Break down the first major milestone or section",
+                        "Execute primary work session with zero distractions",
+                        "Final review, polish, and completion check"
+                    ]
+                
+                priority_score = round((importance * 4.0) / max(days_left, 0.1), 2)
+                
+                new_task = {
+                    "title": task_desc.strip(),
+                    "days": days_left,
+                    "score": priority_score,
+                    "subtasks": subtasks,
+                    "completed": [False] * len(subtasks)
+                }
+                
+                data["tasks"].append(new_task)
+                save_data(data)
+                st.success("Task added successfully! Check the Priority List below.")
+                st.rerun()
 
     st.divider()
     st.subheader("🔥 Ranked Priority Schedule")
@@ -234,18 +241,24 @@ with tab3:
                 
                 confirmed = st.checkbox("✅ I confirm I have focused on and completed this 5-minute micro-step", key=f"confirm_{task_idx}_{first_uncompleted_idx}")
                 
-                claim_key = f"claimed_{task_idx}_{first_uncompleted_idx}"
-                if claim_key not in st.session_state:
-                    st.session_state[claim_key] = False
+                processing_key = f"processing_{task_idx}_{first_uncompleted_idx}"
+                if processing_key not in st.session_state:
+                    st.session_state[processing_key] = False
 
-                if st.session_state[claim_key]:
-                    st.success("✅ XP already claimed for this step! Move on to the next one.")
-                else:
-                    if st.button("✨ Claim XP & Advance", disabled=not confirmed):
-                        st.session_state[claim_key] = True
-                        if not target_task["completed"][first_uncompleted_idx]:
-                            data["tasks"][task_idx]["completed"][first_uncompleted_idx] = True
-                            data["xp"] += 15
-                            save_data(data)
-                            st.balloons()
-                            st.rerun()
+                if st.button("✨ Claim XP & Advance", disabled=not confirmed or st.session_state[processing_key]):
+                    st.session_state[processing_key] = True
+                    if not target_task["completed"][first_uncompleted_idx]:
+                        data["tasks"][task_idx]["completed"][first_uncompleted_idx] = True
+                        data["xp"] += 15
+                        save_data(data)
+                        st.balloons()
+                        
+                        # FIX 1: Explicit transition notification showing Phase 2 / next step clearly
+                        if first_uncompleted_idx + 1 < len(target_task["subtasks"]):
+                            next_step_name = target_task["subtasks"][first_uncompleted_idx + 1]
+                            st.success(f"🎉 +15 XP Claimed! Advanced to Phase {first_uncompleted_idx + 2}: {next_step_name}")
+                        else:
+                            st.success("🎉 +15 XP Claimed! Task fully completed!")
+                            
+                        st.session_state[processing_key] = False
+                        st.rerun()
