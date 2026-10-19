@@ -91,7 +91,7 @@ tab1, tab2, tab3 = st.tabs(["📊 Priority Master List", "🗺️ Step-by-Step R
 
 with tab1:
     st.subheader("✨ Add Any Assignment, Goal, or Task")
-    task_desc = st.text_input("What is your goal?", placeholder="e.g., gym workout, clean room, coding assignment...", key="input_task")
+    task_desc = st.text_input("What is your goal?", placeholder="e.g., gym workout, clean room, physics homework...", key="input_task")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -106,11 +106,10 @@ with tab1:
             lower_desc = task_desc.strip().lower()
             existing_titles = [t["title"].strip().lower() for t in data["tasks"]]
             
-            # Prevent duplicate task creation
             if lower_desc in existing_titles:
                 st.warning("⚠️ This task is already in your priority list!")
             else:
-                # Universal task subtasks breaker
+                # Intelligent Task Categorization
                 if any(word in lower_desc for word in ["ppt", "presentation", "slides", "slide deck", "powerpoint"]):
                     subtasks = [
                         "Outline slide deck structure & key headings",
@@ -126,12 +125,19 @@ with tab1:
                         "Draft/build the core project content or prototype",
                         "Finalize presentation, label sections, & guidelines review"
                     ]
-                elif any(word in lower_desc for word in ["exam", "test", "quiz", "midterm", "finals", "study", "workout", "gym"]):
+                elif any(word in lower_desc for word in ["exam", "test", "quiz", "midterm", "finals", "study", "homework"]):
                     subtasks = [
-                        "Review core notes, chapters, or routine targets",
-                        "Create structured summary or preparation checklist",
-                        "Execute primary practice or physical action session",
-                        "Final review, cooldown, and performance assessment"
+                        "Review core textbook chapters & high-weightage topics",
+                        "Create structured flashcards & short summary notes",
+                        "Solve practice questions, sample papers, or past quizzes",
+                        "Final active recall session & timed mock review"
+                    ]
+                elif any(word in lower_desc for word in ["gym", "workout", "fitness", "exercise", "run", "training"]):
+                    subtasks = [
+                        "Pack gear, water bottle, and prepare workout playlist",
+                        "Dynamic warm-up and mobility stretches",
+                        "Execute main workout routine with proper form",
+                        "Cool down, static stretching, and post-workout hydration"
                     ]
                 else:
                     subtasks = [
@@ -182,7 +188,7 @@ with tab2:
                 <p style="color: #4b5563; margin-bottom: 15px;"><b>Priority Score:</b> <code>{t['score']}</code></p>
             """, unsafe_allow_html=True)
             
-            if "completed" not in t:
+            if "completed" not in t or len(t["completed"]) != len(t["subtasks"]):
                 t["completed"] = [False] * len(t["subtasks"])
                 
             xp_earned = 0
@@ -218,7 +224,7 @@ with tab3:
         if task_idx is not None:
             target_task = data["tasks"][task_idx]
             
-            if "completed" not in target_task:
+            if "completed" not in target_task or len(target_task["completed"]) != len(target_task["subtasks"]):
                 target_task["completed"] = [False] * len(target_task["subtasks"])
                 
             all_done = all(target_task["completed"])
@@ -241,7 +247,6 @@ with tab3:
                 
                 confirmed = st.checkbox("✅ I confirm I have focused on and completed this 5-minute micro-step", key=f"confirm_{task_idx}_{first_uncompleted_idx}")
                 
-                # Anti-spam protection lock using session state safely during execution
                 lock_key = f"lock_{task_idx}_{first_uncompleted_idx}"
                 if lock_key not in st.session_state:
                     st.session_state[lock_key] = False
@@ -249,9 +254,9 @@ with tab3:
                 if st.button("✨ Claim XP & Advance", disabled=not confirmed or st.session_state[lock_key]):
                     st.session_state[lock_key] = True
                     if not target_task["completed"][first_uncompleted_idx]:
-                        data["tasks"][task_idx]["completed"][first_uncompleted_idx] = True
+                        target_task["completed"][first_uncompleted_idx] = True
                         data["xp"] += 15
                         save_data(data)
                         st.balloons()
-                        st.success(f"🎉 +15 XP Claimed! Successfully advancing to the next phase...")
+                        st.success(f"🎉 +15 XP Claimed! Advanced to the next phase.")
                         st.rerun()
