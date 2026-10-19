@@ -234,18 +234,12 @@ with tab3:
                 
                 confirmed = st.checkbox("✅ I confirm I have focused on and completed this 5-minute micro-step", key=f"confirm_{task_idx}_{first_uncompleted_idx}")
                 
-                claim_key = f"claimed_{task_idx}_{first_uncompleted_idx}"
-                if claim_key not in st.session_state:
-                    st.session_state[claim_key] = False
-
-                if st.session_state[claim_key]:
-                    st.success("✅ XP already claimed for this step! Move on to the next one.")
-                else:
-                    if st.button("✨ Claim XP & Advance", disabled=not confirmed):
-                        st.session_state[claim_key] = True
-                        if not target_task["completed"][first_uncompleted_idx]:
-                            data["tasks"][task_idx]["completed"][first_uncompleted_idx] = True
-                            data["xp"] += 15
-                            save_data(data)
-                            st.balloons()
-                            st.rerun()
+                if st.button("✨ Claim XP & Advance", disabled=not confirmed):
+                    if not target_task["completed"][first_uncompleted_idx]:
+                        # Mark this exact step as completed in the data structure
+                        data["tasks"][task_idx]["completed"][first_uncompleted_idx] = True
+                        data["xp"] += 15
+                        save_data(data)
+                        st.balloons()
+                        st.success("Milestone locked in! Moving to the next step...")
+                        st.rerun()
