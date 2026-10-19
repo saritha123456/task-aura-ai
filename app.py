@@ -83,7 +83,7 @@ else:
     st.sidebar.info("🎯 Complete milestones to unlock badges!")
 
 if st.sidebar.button("🚨 Reset Progress"):
-    save_data({"tasks": [], "xp": 0}
+    save_data({"tasks": [], "xp": 0})
     st.rerun()
 
 # Tabs Layout
@@ -234,7 +234,6 @@ with tab3:
                 
                 confirmed = st.checkbox("✅ I confirm I have focused on and completed this 5-minute micro-step", key=f"confirm_{task_idx}_{first_uncompleted_idx}")
                 
-                # Anti-spam processing key
                 processing_key = f"processing_{task_idx}_{first_uncompleted_idx}"
                 if processing_key not in st.session_state:
                     st.session_state[processing_key] = False
@@ -246,6 +245,5 @@ with tab3:
                         data["xp"] += 15
                         save_data(data)
                         st.balloons()
-                        # Reset the processing lock for the next phase
                         st.session_state[processing_key] = False
                         st.rerun()
