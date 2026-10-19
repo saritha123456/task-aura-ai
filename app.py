@@ -91,7 +91,7 @@ tab1, tab2, tab3 = st.tabs(["📊 Priority Master List", "🗺️ Step-by-Step R
 
 with tab1:
     st.subheader("✨ Add Any Assignment, Goal, or Task")
-    task_desc = st.text_input("What is your goal?", placeholder="e.g., clean room, physics homework, gym routine...", key="input_task")
+    task_desc = st.text_input("What is your goal?", placeholder="e.g., gym workout, clean room, coding assignment...", key="input_task")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -103,14 +103,14 @@ with tab1:
         if not task_desc.strip():
             st.warning("Please enter a goal description first.")
         else:
-            # FIX 3: Prevent duplicate task creation if clicked multiple times
             lower_desc = task_desc.strip().lower()
             existing_titles = [t["title"].strip().lower() for t in data["tasks"]]
             
+            # Prevent duplicate task creation
             if lower_desc in existing_titles:
                 st.warning("⚠️ This task is already in your priority list!")
             else:
-                # FIX 2: Universal task breaker supporting ANY type of goal
+                # Universal task subtasks breaker
                 if any(word in lower_desc for word in ["ppt", "presentation", "slides", "slide deck", "powerpoint"]):
                     subtasks = [
                         "Outline slide deck structure & key headings",
@@ -126,12 +126,12 @@ with tab1:
                         "Draft/build the core project content or prototype",
                         "Finalize presentation, label sections, & guidelines review"
                     ]
-                elif any(word in lower_desc for word in ["exam", "test", "quiz", "midterm", "finals", "study"]):
+                elif any(word in lower_desc for word in ["exam", "test", "quiz", "midterm", "finals", "study", "workout", "gym"]):
                     subtasks = [
-                        "Review core textbook chapters & high-weightage topics",
-                        "Create structured flashcards & short summary notes",
-                        "Solve practice questions, sample papers, or past quizzes",
-                        "Final active recall session & timed mock review"
+                        "Review core notes, chapters, or routine targets",
+                        "Create structured summary or preparation checklist",
+                        "Execute primary practice or physical action session",
+                        "Final review, cooldown, and performance assessment"
                     ]
                 else:
                     subtasks = [
@@ -241,24 +241,17 @@ with tab3:
                 
                 confirmed = st.checkbox("✅ I confirm I have focused on and completed this 5-minute micro-step", key=f"confirm_{task_idx}_{first_uncompleted_idx}")
                 
-                processing_key = f"processing_{task_idx}_{first_uncompleted_idx}"
-                if processing_key not in st.session_state:
-                    st.session_state[processing_key] = False
+                # Anti-spam protection lock using session state safely during execution
+                lock_key = f"lock_{task_idx}_{first_uncompleted_idx}"
+                if lock_key not in st.session_state:
+                    st.session_state[lock_key] = False
 
-                if st.button("✨ Claim XP & Advance", disabled=not confirmed or st.session_state[processing_key]):
-                    st.session_state[processing_key] = True
+                if st.button("✨ Claim XP & Advance", disabled=not confirmed or st.session_state[lock_key]):
+                    st.session_state[lock_key] = True
                     if not target_task["completed"][first_uncompleted_idx]:
                         data["tasks"][task_idx]["completed"][first_uncompleted_idx] = True
                         data["xp"] += 15
                         save_data(data)
                         st.balloons()
-                        
-                        # FIX 1: Explicit transition notification showing Phase 2 / next step clearly
-                        if first_uncompleted_idx + 1 < len(target_task["subtasks"]):
-                            next_step_name = target_task["subtasks"][first_uncompleted_idx + 1]
-                            st.success(f"🎉 +15 XP Claimed! Advanced to Phase {first_uncompleted_idx + 2}: {next_step_name}")
-                        else:
-                            st.success("🎉 +15 XP Claimed! Task fully completed!")
-                            
-                        st.session_state[processing_key] = False
+                        st.success(f"🎉 +15 XP Claimed! Successfully advancing to the next phase...")
                         st.rerun()
