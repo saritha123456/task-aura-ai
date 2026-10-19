@@ -245,7 +245,7 @@ with tab3:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                confirmed = st.checkbox("✅ I confirm I have focused on and completed this 5-minute micro-step", key=f"confirm_{task_idx}_{first_uncompleted_idx}")
+                confirmed = st.checkbox("☑️ Check this box after completing the micro-step to unlock XP claim", key=f"confirm_{task_idx}_{first_uncompleted_idx}")
                 
                 lock_key = f"lock_{task_idx}_{first_uncompleted_idx}"
                 if lock_key not in st.session_state:
@@ -258,5 +258,5 @@ with tab3:
                         data["xp"] += 15
                         save_data(data)
                         st.balloons()
-                        st.success(f"🎉 +15 XP Claimed! Advanced to the next phase.")
+                        st.success("🎉 +15 XP Claimed! Advancing to the next phase...")
                         st.rerun()
