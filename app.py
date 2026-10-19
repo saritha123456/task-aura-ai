@@ -245,5 +245,6 @@ with tab3:
                         data["xp"] += 15
                         save_data(data)
                         st.balloons()
+                        st.success(f"✅ +15 XP Claimed! Moving to Phase {first_uncompleted_idx + 2}...")
                         st.session_state[processing_key] = False
                         st.rerun()
